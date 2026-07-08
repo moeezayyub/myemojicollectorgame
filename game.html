@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, touch-action=manipulation">
+    <title>Emoji Collector</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+        }
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #ff8fb3, #ff4d7a);
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            touch-action: manipulation;
+            cursor: pointer;
+        }
+        .bg-hearts {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-hearts span {
+            position: absolute;
+            display: block;
+            font-size: 30px;
+            animation: floatUp 8s linear infinite;
+            opacity: 0.15;
+            color: white;
+            bottom: -60px;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.1; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0.4; }
+        }
+        #game {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 10;
+        }
+        #ui {
+            position: absolute;
+            top: 15px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: clamp(16px, 3.5vw, 20px);
+            font-weight: bold;
+            z-index: 100;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+        #ui div { margin: 3px 0; }
+        .clickable {
+            position: absolute;
+            font-size: 45px;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            transition: transform 0.1s ease;
+            animation: pulse 1.2s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+            pointer-events: auto;
+        }
+        .clickable:active {
+            transform: translate(-50%, -50%) scale(0.85);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+        .bomb-item {
+            animation: shake 0.5s infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, -50%) rotate(5deg); }
+            75% { transform: translate(-50%, -50%) rotate(-5deg); }
+        }
+        .bonus-item {
+            animation: goldenPulse 0.8s ease-in-out infinite;
+            filter: drop-shadow(0 0 12px gold) drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+        @keyframes goldenPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.15); }
+        }
+        .timer-ring {
+            position: absolute;
+            pointer-events: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            transform: translate(-50%, -50%);
+            left: 50%;
+            top: 50%;
+            z-index: 40;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 200;
+        }
+        .overlay.hidden { display: none; }
+        .overlay-card {
+            background: rgba(255, 255, 255, 0.96);
+            color: #d63059;
+            padding: 20px 28px;
+            border-radius: 28px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            max-width: 90vw;
+        }
+        .overlay-card h2 { margin: 0 0 8px; font-size: 26px; }
+        .overlay-card p  { margin: 4px 0; font-size: 16px; }
+        .overlay-btn {
+            margin-top: 14px;
+            padding: 10px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 30px;
+            background: #ff3366;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(255, 60, 110, 0.5);
+            transition: transform 0.15s;
+            display: inline-block;
+            z-index: 215;
+        }
+        .overlay-btn:active { transform: scale(0.93); }
+        #homeBtn{
+    position:fixed;
+    top:20px;
+    left:20px;
+    z-index:1000;
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    padding:12px 20px;
+
+    border:none;
+    border-radius:16px;
+
+    background:rgba(255,255,255,.18);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+
+    color:#fff;
+    font-size:17px;
+    font-weight:700;
+
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.25),
+        inset 0 1px 0 rgba(255,255,255,.3);
+
+    cursor:pointer;
+    transition:.2s ease;
+    -webkit-tap-highlight-color:transparent;
+}
+
+#homeBtn:hover{
+    transform:translateY(-2px);
+    background:rgba(255,255,255,.25);
+}
+
+#homeBtn:active{
+    transform:scale(.96);
+}
+
+@media (max-width:600px){
+    #homeBtn{
+        top:16px;
+        left:16px;
+        padding:10px 16px;
+        font-size:15px;
+        border-radius:14px;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="bg-hearts" id="bgHearts"></div>
+<button id="homeBtn" onclick="window.location.href='index.html'">
+    🏠
+</button>
+    <div id="game">
+        <div id="ui">
+            <div>🎯 Collect <span id="missionCount">5</span> <span id="missionEmoji">🍎</span> in <span id="missionTime">15</span>s</div>
+            <div>⏳ Time left: <span id="timerDisplay">15</span>s</div>
+            <div>💘 Collected: <span id="collectedDisplay">0</span> / <span id="totalDisplay">5</span></div>
+            <div>🏆 Best: <span id="bestDisplay">0</span></div>
+        </div>
+
+        <!-- Start overlay (mission card) -->
+        <div class="overlay" id="startOverlay">
+            <div class="overlay-card">
+                <h2>Collect the <span id="startTargetEmoji">🍎</span>!</h2>
+                <p><strong>Difficulty: <span id="startDifficulty">Easy</span></strong></p>
+                <p>Collect <span id="startMissionCount">3</span> in <span id="startMissionTime">20</span> seconds</p>
+                <p>Avoid bombs 💣 and other items!</p>
+            </div>
+            <button class="overlay-btn" id="startBtn">Start Mission</button>
+        </div>
+
+        <!-- Win overlay -->
+        <div class="overlay hidden" id="winOverlay">
+            <div class="overlay-card">
+                <h2 id="winTitle">🎉 Mission Complete!</h2>
+                <p id="winMessage">You collected all 5 🍎 in time!</p>
+            </div>
+            <button class="overlay-btn" id="nextMissionBtn">Next Mission</button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+    const LOSE_HTML_URL = "gameover.html";
+
+    const game = document.getElementById("game");
+    const startOverlay = document.getElementById("startOverlay");
+    const winOverlay = document.getElementById("winOverlay");
+    const startBtn = document.getElementById("startBtn");
+    const nextMissionBtn = document.getElementById("nextMissionBtn");
+
+    const startTargetEmoji = document.getElementById("startTargetEmoji");
+    const startMissionCount = document.getElementById("startMissionCount");
+    const startMissionTime = document.getElementById("startMissionTime");
+    const startDifficulty = document.getElementById("startDifficulty");
+
+    const missionEmojiSpan = document.getElementById("missionEmoji");
+    const missionCountSpan = document.getElementById("missionCount");
+    const missionTimeSpan = document.getElementById("missionTime");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const collectedDisplay = document.getElementById("collectedDisplay");
+    const totalDisplay = document.getElementById("totalDisplay");
+    const bestDisplay = document.getElementById("bestDisplay");
+    const bgHeartsContainer = document.getElementById("bgHearts");
+
+    const TARGET_EMOJIS = ['🍎','🍊','🍇','🍓','🍒','🍑','🥝','🍌','🍉','🥑','🍍','🥭','🍈','🍋','🍐'];
+    const BG_EMOJIS = ['❤️','💕','💖','💘','💝','🌸','🌺','✨','⭐','🌈','🍬','🍭','🎈','🎀','💎'];
+    const BONUS_EMOJIS = ['💰','🎁','📢','🪙','💎','🎈','🎀','🎊','🎉','🎃','✨','🌟','💡','🔥','🍀'];
+
+    let best = parseInt(localStorage.getItem("valentineTapMissionBest")) || 0;
+    bestDisplay.textContent = best;
+
+    // Mission state
+    let currentTargetEmoji = '🍎';
+    let missionTargetCount = 20;        // default (will be overwritten)
+    let missionTimeLimit = 60;
+    let currentDifficulty = 'Easy';
+    let collected = 0;
+    let gameStartTime = 0;
+    let timerInterval = null;
+
+    // Adaptive AI
+    let heartLifetime = 2500;           // initial fade-away time (ms)
+    let recentResponseTimes = [];
+
+    let playing = false;
+    let activeItems = [];
+    const MAX_BOMBS = 2;
+    const MAX_BONUS = 4;
+    let bombCount = 0;
+    let bonusCount = 0;
+    const BOMB_LIFETIME = 2200;
+    const BONUS_LIFETIME = 3000;
+    const MAX_ONSCREEN_HEARTS = 10;
+
+    let spawnHeartTimeout, spawnBombTimeout, spawnBonusTimeout;
+
+    // Audio
+    let audioCtx = null;
+    function getAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+    }
+    function beep(freq, dur, type = 'sine') {
+        try {
+            const ctx = getAudio();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+            osc.start();
+            osc.stop(ctx.currentTime + dur);
+        } catch (e) {}
+    }
+
+    function removeItem(item) {
+        if (!item || !item.el) return;
+        clearTimeout(item.timerId);
+        if (item.el.parentNode) item.el.remove();
+        if (item.type === 'bomb') bombCount = Math.max(0, bombCount - 1);
+        if (item.type === 'bonus') bonusCount = Math.max(0, bonusCount - 1);
+        const idx = activeItems.indexOf(item);
+        if (idx > -1) activeItems.splice(idx, 1);
+    }
+
+    function onHeartMissed(item) {
+        beep(200, 0.15, 'square');
+        removeItem(item);
+    }
+
+    function loseAndRedirect() {
+        if (!playing) return;
+        stopGame();
+        if (collected > best) {
+            best = collected;
+            localStorage.setItem("valentineTapMissionBest", best);
+            bestDisplay.textContent = best;
+        }
+        window.location.href = LOSE_HTML_URL;
+    }
+
+    function winMission() {
+        if (!playing) return;
+        stopGame();
+        if (collected > best) {
+            best = collected;
+            localStorage.setItem("valentineTapMissionBest", best);
+            bestDisplay.textContent = best;
+        }
+        document.getElementById("winTitle").textContent = '🎉 Mission Complete!';
+        document.getElementById("winMessage").textContent = 
+            `You collected all ${missionTargetCount} ${currentTargetEmoji} in time! (${currentDifficulty})`;
+        winOverlay.classList.remove('hidden');
+    }
+
+    function stopGame() {
+        playing = false;
+        clearTimeout(spawnHeartTimeout);
+        clearTimeout(spawnBombTimeout);
+        clearTimeout(spawnBonusTimeout);
+        clearInterval(timerInterval);
+        while (activeItems.length) {
+            const item = activeItems[0];
+            clearTimeout(item.timerId);
+            if (item.el.parentNode) item.el.remove();
+            activeItems.shift();
+        }
+        bombCount = 0;
+        bonusCount = 0;
+    }
+
+    function prepareMission() {
+        stopGame();
+
+        // --- Random difficulty: Easy, Hard, Hardest, Adaptive ---
+        const rand = Math.random();
+        if (rand < 0.25) {
+            currentDifficulty = 'Easy';
+            missionTargetCount = 15 + Math.floor(Math.random() * 16);   // 15-30
+            missionTimeLimit = 60 + Math.floor(Math.random() * 16);     // 60-75 sec
+        } else if (rand < 0.50) {
+            currentDifficulty = 'Hard';
+            missionTargetCount = 30 + Math.floor(Math.random() * 21);   // 30-50
+            missionTimeLimit = 50 + Math.floor(Math.random() * 16);     // 50-65 sec
+        } else if (rand < 0.75) {
+            currentDifficulty = 'Hardest';
+            missionTargetCount = 50 + Math.floor(Math.random() * 31);   // 50-80
+            missionTimeLimit = 45 + Math.floor(Math.random() * 11);     // 45-55 sec
+        } else {
+            currentDifficulty = 'Adaptive';
+            missionTargetCount = 80 + Math.floor(Math.random() * 21);   // 80-100
+            missionTimeLimit = 50 + Math.floor(Math.random() * 11);     // 50-60 sec
+        }
+
+        currentTargetEmoji = TARGET_EMOJIS[Math.floor(Math.random() * TARGET_EMOJIS.length)];
+        collected = 0;
+
+        // Reset adaptive AI
+        heartLifetime = 2500;
+        recentResponseTimes = [];
+
+        // Update UI
+        missionEmojiSpan.textContent = currentTargetEmoji;
+        missionCountSpan.textContent = missionTargetCount;
+        missionTimeSpan.textContent = missionTimeLimit;
+        timerDisplay.textContent = missionTimeLimit;
+        collectedDisplay.textContent = '0';
+        totalDisplay.textContent = missionTargetCount;
+        bestDisplay.textContent = best;
+
+        // Update start overlay
+        startTargetEmoji.textContent = currentTargetEmoji;
+        startMissionCount.textContent = missionTargetCount;
+        startMissionTime.textContent = missionTimeLimit;
+        startDifficulty.textContent = currentDifficulty;
+
+        startOverlay.classList.remove('hidden');
+        winOverlay.classList.add('hidden');
+    }
+
+    function startMission() {
+        startOverlay.classList.add('hidden');
+        playing = true;
+        gameStartTime = Date.now();
+        timerInterval = setInterval(updateTimer, 200);
+        scheduleHeartSpawn();
+        scheduleBombSpawn();
+        scheduleBonusSpawn();
+    }
+
+    function updateTimer() {
+        if (!playing) return;
+        const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+        const remaining = Math.max(0, missionTimeLimit - elapsed);
+        timerDisplay.textContent = remaining;
+        if (remaining <= 0) {
+            loseAndRedirect();
+        }
+    }
+
+    // Adaptive AI: record response time & adjust lifetime
+    function recordResponseTime(ms) {
+        recentResponseTimes.push(ms);
+        if (recentResponseTimes.length > 30) recentResponseTimes.shift();
+    }
+
+    function updateHeartLifetime() {
+        if (recentResponseTimes.length >= 5) {
+            const avg = recentResponseTimes.reduce((a,b) => a+b, 0) / recentResponseTimes.length;
+            // Set lifetime to 2× average response time, capped between 1.5 and 4 seconds
+            heartLifetime = Math.min(4000, Math.max(1500, avg * 2));
+        }
+    }
+
+    function createItem(type) {
+        if (!playing) return;
+        const el = document.createElement('div');
+        el.className = 'clickable';
+        let lifetime;
+        if (type === 'heart') {
+            el.innerHTML = currentTargetEmoji;
+            lifetime = heartLifetime;               // adaptive
+        } else if (type === 'bomb') {
+            el.innerHTML = '💣';
+            el.classList.add('bomb-item');
+            lifetime = BOMB_LIFETIME;
+        } else if (type === 'bonus') {
+            el.innerHTML = BONUS_EMOJIS[Math.floor(Math.random() * BONUS_EMOJIS.length)];
+            el.classList.add('bonus-item');
+            lifetime = BONUS_LIFETIME;
+        }
+
+        const x = 60 + Math.random() * (window.innerWidth - 120);
+        const y = 80 + Math.random() * (window.innerHeight - 160);
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+
+        const ring = document.createElement('div');
+        ring.className = 'timer-ring';
+        el.appendChild(ring);
+
+        const startTime = Date.now();
+        const itemData = { el, type, x, y, startTime, lifetime, timerId: null };
+
+        const updateOpacity = () => {
+            if (!playing || !itemData.el.parentNode) return;
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / lifetime);
+            el.style.opacity = 1 - progress;
+            ring.style.opacity = 1 - progress;
+            if (progress >= 1) {
+                if (type === 'heart') {
+                    onHeartMissed(itemData);
+                } else {
+                    removeItem(itemData);
+                }
+            } else {
+                requestAnimationFrame(updateOpacity);
+            }
+        };
+        requestAnimationFrame(updateOpacity);
+
+        itemData.timerId = setTimeout(() => {
+            if (itemData.el.parentNode) {
+                if (type === 'heart' && playing) {
+                    onHeartMissed(itemData);
+                } else {
+                    removeItem(itemData);
+                }
+            }
+        }, lifetime + 50);
+
+        el.addEventListener('pointerdown', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (!playing || !itemData.el.parentNode) return;
+
+            if (type === 'bomb' || type === 'bonus') {
+                loseAndRedirect();
+                return;
+            }
+
+            // Heart collected
+            if (type === 'heart') {
+                const responseTime = Date.now() - itemData.startTime;
+                collected++;
+                collectedDisplay.textContent = collected;
+                beep(700, 0.07);
+                spawnClickParticles(x, y, currentTargetEmoji);
+                removeItem(itemData);
+
+                // Feed AI
+                recordResponseTime(responseTime);
+                updateHeartLifetime();
+
+                if (collected >= missionTargetCount) {
+                    winMission();
+                }
+            }
+        });
+
+        game.appendChild(el);
+        activeItems.push(itemData);
+        if (type === 'bomb') bombCount++;
+        if (type === 'bonus') bonusCount++;
+    }
+
+    function spawnClickParticles(x, y, emoji) {
+        for (let i = 0; i < 6; i++) {
+            const p = document.createElement('div');
+            p.textContent = emoji;
+            p.style.position = 'absolute';
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            p.style.fontSize = '24px';
+            p.style.pointerEvents = 'none';
+            p.style.zIndex = '100';
+            p.style.transform = 'translate(-50%, -50%)';
+            p.style.animation = 'particleUp 0.6s ease-out forwards';
+            game.appendChild(p);
+            setTimeout(() => p.remove(), 700);
+        }
+    }
+
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+        @keyframes particleUp {
+            0% { opacity:1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity:0; transform: translate(-50%, -80px) scale(0.2); }
+        }
+    `;
+    document.head.appendChild(styleSheet);
+
+    function scheduleHeartSpawn() {
+        if (!playing) return;
+        if (collected >= missionTargetCount) return;
+        const currentHearts = activeItems.filter(item => item.type === 'heart').length;
+        if (currentHearts < MAX_ONSCREEN_HEARTS) {
+            createItem('heart');
+        }
+        const delay = 600 + Math.random() * 1000;
+        spawnHeartTimeout = setTimeout(scheduleHeartSpawn, delay);
+    }
+
+    function scheduleBombSpawn() {
+        if (!playing) return;
+        const delay = 2000 + Math.random() * 3000;
+        spawnBombTimeout = setTimeout(() => {
+            if (!playing) return;
+            if (bombCount < MAX_BOMBS) createItem('bomb');
+            scheduleBombSpawn();
+        }, delay);
+    }
+
+    function scheduleBonusSpawn() {
+        if (!playing) return;
+        const delay = 900 + Math.random() * 1500;
+        spawnBonusTimeout = setTimeout(() => {
+            if (!playing) return;
+            if (bonusCount < MAX_BONUS) createItem('bonus');
+            scheduleBonusSpawn();
+        }, delay);
+    }
+
+    function createBgHearts() {
+        const count = 18;
+        for (let i = 0; i < count; i++) {
+            const span = document.createElement('span');
+            span.innerHTML = BG_EMOJIS[Math.floor(Math.random() * BG_EMOJIS.length)];
+            span.style.left = Math.random() * 100 + '%';
+            span.style.animationDuration = (6 + Math.random() * 10) + 's';
+            span.style.animationDelay = Math.random() * 8 + 's';
+            span.style.fontSize = (20 + Math.random() * 40) + 'px';
+            bgHeartsContainer.appendChild(span);
+        }
+    }
+    createBgHearts();
+
+    startBtn.addEventListener('click', startMission);
+    startBtn.addEventListener('touchend', (e) => { e.preventDefault(); startMission(); });
+    nextMissionBtn.addEventListener('click', prepareMission);
+    nextMissionBtn.addEventListener('touchend', (e) => { e.preventDefault(); prepareMission(); });
+
+    game.addEventListener('dblclick', e => e.preventDefault());
+
+    // Show the first mission card (random difficulty)
+    prepareMission();
+})();
+    </script>
+</body>
+</html>

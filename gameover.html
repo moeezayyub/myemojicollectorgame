@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iframe Redirect</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Change iframe.html to the page you want to display -->
+    <iframe src="https://gameoverinterstitial.blogspot.com/"></iframe>
+
+    <script>
+        // Redirect after 10 seconds
+        setTimeout(function () {
+            window.location.href = "game.html"; // Change to your target HTML file
+        }, 15000);
+    </script>
+
+</body>
+</html>
