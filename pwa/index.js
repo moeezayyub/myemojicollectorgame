@@ -5,31 +5,28 @@ if ("serviceWorker" in navigator) {
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 
-// Hide the button by default
-installBtn.hidden = true;
-
-// If the app is already running as an installed PWA, keep it hidden.
-if (
-  window.matchMedia("(display-mode: standalone)").matches ||
-  window.navigator.standalone === true
-) {
-  installBtn.hidden = true;
+function isRunningStandalone() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia("(display-mode: window-controls-overlay)").matches ||
+    window.navigator.standalone === true ||
+    document.referrer.startsWith("android-app://")
+  );
 }
 
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
+// Hide button initially
+installBtn.hidden = true;
 
-  // Don't show the button if already running as an installed app.
-  if (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true
-  ) {
-    return;
-  }
-
-  deferredPrompt = e;
-  installBtn.hidden = false;
-});
+// Hide immediately if already running as installed app
+if (isRunningStandalone()) {
+  installBtn.hidden = true;
+} else {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.hidden = false;
+  });
+}
 
 installBtn.addEventListener("click", async () => {
   if (!deferredPrompt) return;
@@ -37,14 +34,15 @@ installBtn.addEventListener("click", async () => {
   deferredPrompt.prompt();
 
   const { outcome } = await deferredPrompt.userChoice;
-  console.log(outcome);
 
   deferredPrompt = null;
   installBtn.hidden = true;
+
+  console.log("Install result:", outcome);
 });
 
 window.addEventListener("appinstalled", () => {
   deferredPrompt = null;
   installBtn.hidden = true;
-  console.log("App installed");
+  console.log("App Installed");
 });
