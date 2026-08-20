@@ -195,32 +195,7 @@
     transition:.25s ease;
 }
 
-#installBtn::before{
-    content:"📲";
-    font-size:22px;
-}
 
-#installBtn:hover{
-    transform:translateX(-50%) translateY(-2px);
-}
-
-#installBtn:active{
-    transform:translateX(-50%) scale(.98);
-}
-
-@media (max-width:600px){
-    #installBtn{
-        top:16px;
-        width:92%;
-        padding:12px 16px;
-        font-size:16px;
-        border-radius:16px;
-    }
-
-    #installBtn::before{
-        font-size:20px;
-    }
-}
 @media (max-width:480px){
 
     .menu{
@@ -253,7 +228,7 @@
     </style>
 </head>
 <body>
-<button id="installBtn" hidden>Install App</button>
+
 
     <!-- Floating emojis background -->
     <div class="bg-emojis" id="bgEmojis"></div>
@@ -303,6 +278,6 @@
             window.location.href = 'game.html';
         });
     </script>
-<script src="pwa/index.js"></script>
+
 </body>
 </html>
